@@ -142,3 +142,138 @@
                     const freq1 = Math.sin(x * 0.005 + time + i); const freq2 = Math.cos(x * 0.01 - time * 1.5);
                     const atten = Math.max(0, 1 - Math.abs(x - w / 2) / (w / 1.5));
                     const wave = (freq1 + freq2) * 80 * atten * (i + 0.5);
+                    const y = (h / 2) + wave;
+                    if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+                }
+                ctx.stroke();
+            }
+            time += 0.02; requestAnimationFrame(renderWaves);
+        }
+        renderWaves();
+    </script>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDKNm31kYh-lLAs-pOWIVLQ0x5PKILyBTM",
+            authDomain: "inscripcionesevento2137612d.firebaseapp.com",
+            projectId: "inscripcionesevento2137612d",
+            storageBucket: "inscripcionesevento2137612d.firebasestorage.app",
+            messagingSenderId: "659015075726",
+            appId: "1:659015075726:web:ac9e83f12e72a43b4dc6df",
+            measurementId: "G-CN3MER5DMZ"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const viewHome = document.getElementById('view-home');
+        const viewForm = document.getElementById('view-form');
+        const discordInput = document.getElementById('discord-user');
+        const usersListElement = document.getElementById('users-list');
+        const btnGoForm = document.getElementById('btn-go-form');
+        const btnCancel = document.getElementById('btn-cancel');
+        const btnSubmit = document.getElementById('btn-submit');
+        const adminTrigger = document.getElementById('admin-trigger');
+
+        // Estado para saber si eres admin o no
+        let isAdmin = false;
+
+        // DOBLE CLIC EN EL TÍTULO PARA PANEL DE ADMIN
+        adminTrigger.addEventListener('dblclick', () => {
+            const clave = prompt("Panel de administración");
+            if (clave === "0877") {
+                isAdmin = true;
+                document.body.classList.add('show-admin-controls');
+                alert("Código correcto. Modo administrador activado.");
+            } else if (clave !== null) {
+                alert("Código incorrecto.");
+            }
+        });
+
+        // Transiciones de pantalla
+        btnGoForm.addEventListener('click', () => {
+            viewHome.classList.remove('active'); viewHome.classList.add('hidden-left');
+            viewForm.classList.remove('hidden-right'); viewForm.classList.add('active');
+            setTimeout(() => discordInput.focus(), 600);
+        });
+
+        btnCancel.addEventListener('click', () => {
+            viewForm.classList.remove('active'); viewForm.classList.add('hidden-right');
+            viewHome.classList.remove('hidden-left'); viewHome.classList.add('active');
+            discordInput.value = '';
+        });
+
+        // Guardar usuarios
+        async function registerUser() {
+            const user = discordInput.value.trim();
+            if (user === '') {
+                discordInput.style.transform = 'translateX(-10px)';
+                setTimeout(() => discordInput.style.transform = 'translateX(10px)', 100);
+                setTimeout(() => discordInput.style.transform = 'translateX(0)', 200);
+                return;
+            }
+
+            btnSubmit.disabled = true;
+            btnSubmit.textContent = "Guardando...";
+
+            try {
+                await addDoc(collection(db, "inscripciones"), {
+                    username: user,
+                    timestamp: serverTimestamp()
+                });
+                btnCancel.click(); 
+            } catch (error) {
+                console.error(error);
+                alert("Error al guardar.");
+            } finally {
+                btnSubmit.disabled = false;
+                btnSubmit.textContent = "Inscribirse";
+            }
+        }
+
+        btnSubmit.addEventListener('click', registerUser);
+        discordInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') registerUser(); });
+
+        // Escuchar la base de datos en tiempo real
+        const q = query(collection(db, "inscripciones"), orderBy("timestamp", "desc"));
+        
+        onSnapshot(q, (snapshot) => {
+            usersListElement.innerHTML = '';
+            if (snapshot.empty) {
+                usersListElement.innerHTML = '<li style="justify-content:center; opacity:0.5; cursor:default;">Aún no hay inscritos</li>';
+                return;
+            }
+            
+            snapshot.forEach((documentoFirebase) => {
+                const data = documentoFirebase.data();
+                
+                const li = document.createElement('li');
+                li.textContent = data.username;
+
+                // Crear botón X de borrado
+                const deleteX = document.createElement('button');
+                deleteX.className = 'btn-delete';
+                deleteX.innerHTML = 'x';
+                
+                // Si haces clic en la X, borra el documento de Firebase
+                deleteX.onclick = async () => {
+                    const seguro = confirm(`¿Seguro que deseas eliminar a ${data.username}?`);
+                    if (seguro) {
+                        try {
+                            await deleteDoc(doc(db, "inscripciones", documentoFirebase.id));
+                        } catch (error) {
+                            alert("No se pudo eliminar de la base de datos.");
+                        }
+                    }
+                };
+
+                li.appendChild(deleteX);
+                usersListElement.appendChild(li);
+            });
+        });
+    </script>
+</body>
+</html>
