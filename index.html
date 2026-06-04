@@ -63,6 +63,7 @@
         /* --- CUADRO DE USUARIOS --- */
         .users-container { margin-top: 50px; width: 320px; display: flex; flex-direction: column; align-items: center; }
         .users-title { font-size: 1.2rem; color: #a7f3d0; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 2px; }
+        
         .users-box {
             background: rgba(10, 10, 20, 0.7); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 15px;
             width: 100%; height: 200px; overflow-y: auto; padding: 15px; box-sizing: border-box; backdrop-filter: blur(10px);
@@ -71,9 +72,12 @@
         .user-list li {
             padding: 12px 15px; background: rgba(255, 255, 255, 0.05); margin-bottom: 10px;
             border-radius: 8px; display: flex; align-items: center; font-size: 1.1rem;
+            cursor: pointer; transition: background 0.2s ease;
         }
+        .user-list li:hover { background: rgba(239, 68, 68, 0.2); } /* Se pone rojito al pasar el ratón */
         .user-list li::before { content: "👾"; margin-right: 12px; font-size: 1.3rem; }
 
+        /* Scrollbar */
         .users-box::-webkit-scrollbar { width: 6px; }
         .users-box::-webkit-scrollbar-track { background: rgba(0,0,0,0.3); border-radius: 10px; }
         .users-box::-webkit-scrollbar-thumb { background: #10b981; border-radius: 10px; }
@@ -111,6 +115,7 @@
     </div>
 
     <script>
+        // --- SCRIPT DEL FONDO ANIMADO ---
         const canvas = document.getElementById('canvas-bg');
         const ctx = canvas.getContext('2d');
         let w, h, time = 0;
@@ -137,10 +142,11 @@
     </script>
 
     <script type="module">
+        // --- SCRIPT DE FIREBASE ---
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-        // Configuración extraída directamente de tu panel de Firebase
+        // Tu configuración
         const firebaseConfig = {
             apiKey: "AIzaSyDKNm31kYh-lLAs-pOWIVLQ0x5PKILyBTM",
             authDomain: "inscripcionesevento2137612d.firebaseapp.com",
@@ -151,11 +157,9 @@
             measurementId: "G-CN3MER5DMZ"
         };
 
-        // Inicializar la App y la Base de Datos
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // Elementos de la interfaz
         const viewHome = document.getElementById('view-home');
         const viewForm = document.getElementById('view-form');
         const discordInput = document.getElementById('discord-user');
@@ -164,21 +168,20 @@
         const btnCancel = document.getElementById('btn-cancel');
         const btnSubmit = document.getElementById('btn-submit');
 
-        // Animación ir al formulario (De izquierda a derecha)
+        // Animaciones
         btnGoForm.addEventListener('click', () => {
             viewHome.classList.remove('active'); viewHome.classList.add('hidden-left');
             viewForm.classList.remove('hidden-right'); viewForm.classList.add('active');
             setTimeout(() => discordInput.focus(), 600);
         });
 
-        // Animación volver al inicio (De derecha a izquierda)
         btnCancel.addEventListener('click', () => {
             viewForm.classList.remove('active'); viewForm.classList.add('hidden-right');
             viewHome.classList.remove('hidden-left'); viewHome.classList.add('active');
             discordInput.value = '';
         });
 
-        // Guardar usuario en la base de datos global en la nube
+        // Guardar
         async function registerUser() {
             const user = discordInput.value.trim();
             if (user === '') {
@@ -198,8 +201,8 @@
                 });
                 btnCancel.click(); 
             } catch (error) {
-                console.error("Error al guardar:", error);
-                alert("Error al enviar. Asegúrate de haber activado 'Firestore Database' en modo de prueba en tu panel de Firebase.");
+                console.error(error);
+                alert("Error. Asegúrate de tener las Reglas en Firestore como 'true'.");
             } finally {
                 btnSubmit.disabled = false;
                 btnSubmit.textContent = "Inscribirse";
@@ -209,20 +212,36 @@
         btnSubmit.addEventListener('click', registerUser);
         discordInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') registerUser(); });
 
-        // Escuchar la base de datos en vivo (Sincroniza a todos los usuarios a la vez)
+        // Escuchar datos en vivo y función de doble clic
         const q = query(collection(db, "inscripciones"), orderBy("timestamp", "desc"));
         
         onSnapshot(q, (snapshot) => {
             usersListElement.innerHTML = '';
             if (snapshot.empty) {
-                usersListElement.innerHTML = '<li style="justify-content:center; opacity:0.5;">Sé el primero en inscribirte</li>';
+                usersListElement.innerHTML = '<li style="justify-content:center; opacity:0.5; cursor:default;">Aún no hay inscritos</li>';
                 return;
             }
             
-            snapshot.forEach((doc) => {
-                const data = doc.data();
+            snapshot.forEach((documentoFirebase) => {
+                const data = documentoFirebase.data();
+                
+                // Crear el elemento de la lista
                 const li = document.createElement('li');
                 li.textContent = data.username;
+                li.title = "Doble clic para borrar este usuario"; // Texto que sale al pasar el ratón
+
+                // Evento para borrar al hacer DOBLE CLIC en el nombre
+                li.addEventListener('dblclick', async () => {
+                    const confirmar = confirm(`¿Seguro que quieres borrar a ${data.username}?`);
+                    if (confirmar) {
+                        try {
+                            await deleteDoc(doc(db, "inscripciones", documentoFirebase.id));
+                        } catch (error) {
+                            alert("Hubo un error al intentar borrar.");
+                        }
+                    }
+                });
+
                 usersListElement.appendChild(li);
             });
         });
