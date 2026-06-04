@@ -63,10 +63,19 @@
         /* --- CUADRO DE USUARIOS --- */
         .users-container { margin-top: 50px; width: 320px; display: flex; flex-direction: column; align-items: center; }
         
-        .users-title { 
-            font-size: 1.2rem; color: #a7f3d0; margin-bottom: 15px; text-transform: uppercase; 
-            letter-spacing: 2px; user-select: none; cursor: pointer;
+        .users-title-wrapper {
+            display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 15px;
         }
+
+        .users-title { 
+            font-size: 1.2rem; color: #a7f3d0; text-transform: uppercase; letter-spacing: 2px; user-select: none;
+        }
+
+        /* El punto verde secreto */
+        .admin-dot {
+            color: #10b981; font-size: 0.8rem; cursor: pointer; user-select: none; transition: opacity 0.2s;
+        }
+        .admin-dot:hover { opacity: 0.7; }
         
         .users-box {
             background: rgba(10, 10, 20, 0.7); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 15px;
@@ -86,7 +95,6 @@
         }
         .btn-delete:hover { transform: scale(1.3); color: #dc2626; }
         
-        /* Esta clase se activa con la clave correcta y muestra las X */
         body.show-admin-controls .btn-delete { display: block; }
 
         /* Scrollbar */
@@ -105,7 +113,10 @@
             <button class="btn-green" id="btn-go-form">Inscribirse</button>
             
             <div class="users-container">
-                <div class="users-title" id="admin-trigger">Usuarios Inscritos</div>
+                <div class="users-title-wrapper">
+                    <div class="users-title">Usuarios Inscritos</div>
+                    <span class="admin-dot" id="admin-dot-trigger">●</span>
+                </div>
                 <div class="users-box">
                     <ul class="user-list" id="users-list">
                         <li style="justify-content:center; opacity:0.5; cursor:default;">Cargando inscripciones...</li>
@@ -176,16 +187,12 @@
         const btnGoForm = document.getElementById('btn-go-form');
         const btnCancel = document.getElementById('btn-cancel');
         const btnSubmit = document.getElementById('btn-submit');
-        const adminTrigger = document.getElementById('admin-trigger');
+        const adminDotTrigger = document.getElementById('admin-dot-trigger');
 
-        // Estado para saber si eres admin o no
-        let isAdmin = false;
-
-        // DOBLE CLIC EN EL TÍTULO PARA PANEL DE ADMIN
-        adminTrigger.addEventListener('dblclick', () => {
+        // UN SOLO CLIC EN EL PUNTO VERDE PARA EL PANEL
+        adminDotTrigger.addEventListener('click', () => {
             const clave = prompt("Panel de administración");
             if (clave === "0877") {
-                isAdmin = true;
                 document.body.classList.add('show-admin-controls');
                 alert("Código correcto. Modo administrador activado.");
             } else if (clave !== null) {
@@ -193,7 +200,7 @@
             }
         });
 
-        // Transiciones de pantalla
+        // Transiciones
         btnGoForm.addEventListener('click', () => {
             viewHome.classList.remove('active'); viewHome.classList.add('hidden-left');
             viewForm.classList.remove('hidden-right'); viewForm.classList.add('active');
@@ -237,7 +244,7 @@
         btnSubmit.addEventListener('click', registerUser);
         discordInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') registerUser(); });
 
-        // Escuchar la base de datos en tiempo real
+        // Base de datos en tiempo real
         const q = query(collection(db, "inscripciones"), orderBy("timestamp", "desc"));
         
         onSnapshot(q, (snapshot) => {
@@ -253,12 +260,10 @@
                 const li = document.createElement('li');
                 li.textContent = data.username;
 
-                // Crear botón X de borrado
                 const deleteX = document.createElement('button');
                 deleteX.className = 'btn-delete';
                 deleteX.innerHTML = 'x';
                 
-                // Si haces clic en la X, borra el documento de Firebase
                 deleteX.onclick = async () => {
                     const seguro = confirm(`¿Seguro que deseas eliminar a ${data.username}?`);
                     if (seguro) {
