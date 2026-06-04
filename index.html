@@ -7,197 +7,76 @@
     <style>
         /* --- ESTILOS GENERALES --- */
         body, html {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100vh;
+            margin: 0; padding: 0; width: 100%; height: 100vh;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #090914;
-            color: #ffffff;
-            overflow: hidden; /* Evita el scroll de la página completa */
+            background-color: #090914; color: #ffffff; overflow: hidden;
         }
 
-        /* --- FONDO ANIMADO --- */
         #canvas-bg {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;
         }
 
-        /* --- CONTENEDOR DE VISTAS --- */
         .app-container {
-            position: relative;
-            width: 100%;
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            position: relative; width: 100%; height: 100vh;
+            display: flex; justify-content: center; align-items: center;
         }
 
         .view {
-            position: absolute;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            width: 100%;
-            max-width: 500px;
+            position: absolute; display: flex; flex-direction: column; align-items: center;
+            width: 100%; max-width: 500px;
             transition: transform 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55), opacity 0.5s ease;
-            opacity: 0;
-            pointer-events: none;
+            opacity: 0; pointer-events: none;
         }
 
-        /* Estados de las vistas para la animación de lado a lado */
-        .view.active {
-            opacity: 1;
-            transform: translateX(0);
-            pointer-events: auto;
-        }
-
-        .view.hidden-left {
-            transform: translateX(-150%);
-        }
-
-        .view.hidden-right {
-            transform: translateX(150%);
-        }
+        .view.active { opacity: 1; transform: translateX(0); pointer-events: auto; }
+        .view.hidden-left { transform: translateX(-150%); }
+        .view.hidden-right { transform: translateX(150%); }
 
         /* --- BOTONES --- */
         .btn-green {
-            background-color: #10b981;
-            color: white;
-            border: none;
-            border-radius: 50px; /* Redondito */
-            padding: 15px 40px;
-            font-size: 1.2rem;
-            font-weight: bold;
-            cursor: pointer;
-            /* Aura verdecito lima */
-            box-shadow: 0 0 25px 8px rgba(52, 211, 153, 0.5);
-            transition: all 0.3s ease;
+            background-color: #10b981; color: white; border: none; border-radius: 50px;
+            padding: 15px 40px; font-size: 1.2rem; font-weight: bold; cursor: pointer;
+            box-shadow: 0 0 25px 8px rgba(52, 211, 153, 0.5); transition: all 0.3s ease;
         }
-
         .btn-green:hover {
-            background-color: #059669;
-            box-shadow: 0 0 35px 12px rgba(52, 211, 153, 0.8);
-            transform: scale(1.05);
+            background-color: #059669; box-shadow: 0 0 35px 12px rgba(52, 211, 153, 0.8); transform: scale(1.05);
         }
+        .btn-green:disabled { background-color: #6ee7b7; cursor: not-allowed; transform: none; box-shadow: none; }
 
         .btn-cancel {
-            background-color: transparent;
-            color: #ef4444;
-            border: 2px solid #ef4444;
-            border-radius: 50px;
-            padding: 13px 30px;
-            font-size: 1.1rem;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s ease;
+            background-color: transparent; color: #ef4444; border: 2px solid #ef4444;
+            border-radius: 50px; padding: 13px 30px; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: all 0.3s ease;
         }
+        .btn-cancel:hover { background-color: #ef4444; color: white; box-shadow: 0 0 20px 5px rgba(239, 68, 68, 0.4); }
 
-        .btn-cancel:hover {
-            background-color: #ef4444;
-            color: white;
-            box-shadow: 0 0 20px 5px rgba(239, 68, 68, 0.4);
-        }
-
-        .button-group {
-            display: flex;
-            gap: 15px;
-            margin-top: 20px;
-        }
+        .button-group { display: flex; gap: 15px; margin-top: 20px; }
 
         /* --- FORMULARIO --- */
-        h2 {
-            font-size: 2rem;
-            text-align: center;
-            margin-bottom: 30px;
-            text-shadow: 0 2px 10px rgba(0,0,0,0.8);
-        }
-
+        h2 { font-size: 2rem; text-align: center; margin-bottom: 30px; text-shadow: 0 2px 10px rgba(0,0,0,0.8); }
         input[type="text"] {
-            padding: 15px 25px;
-            border-radius: 30px;
-            border: 2px solid rgba(16, 185, 129, 0.5);
-            background: rgba(255, 255, 255, 0.05);
-            color: white;
-            font-size: 1.2rem;
-            width: 80%;
-            text-align: center;
-            outline: none;
-            transition: all 0.3s ease;
-            backdrop-filter: blur(5px);
+            padding: 15px 25px; border-radius: 30px; border: 2px solid rgba(16, 185, 129, 0.5);
+            background: rgba(255, 255, 255, 0.05); color: white; font-size: 1.2rem;
+            width: 80%; text-align: center; outline: none; transition: all 0.3s ease; backdrop-filter: blur(5px);
         }
+        input[type="text"]:focus { border-color: #10b981; box-shadow: 0 0 20px rgba(16, 185, 129, 0.4); background: rgba(255, 255, 255, 0.1); }
 
-        input[type="text"]:focus {
-            border-color: #10b981;
-            box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        /* --- CUADRO DE USUARIOS INSCRITOS --- */
-        .users-container {
-            margin-top: 50px;
-            width: 320px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .users-title {
-            font-size: 1.2rem;
-            color: #a7f3d0;
-            margin-bottom: 15px;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
-
+        /* --- CUADRO DE USUARIOS --- */
+        .users-container { margin-top: 50px; width: 320px; display: flex; flex-direction: column; align-items: center; }
+        .users-title { font-size: 1.2rem; color: #a7f3d0; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 2px; }
         .users-box {
-            background: rgba(10, 10, 20, 0.7);
-            border: 1px solid rgba(16, 185, 129, 0.3);
-            border-radius: 15px;
-            width: 100%;
-            height: 200px;
-            overflow-y: auto;
-            padding: 15px;
-            box-sizing: border-box;
-            backdrop-filter: blur(10px);
+            background: rgba(10, 10, 20, 0.7); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 15px;
+            width: 100%; height: 200px; overflow-y: auto; padding: 15px; box-sizing: border-box; backdrop-filter: blur(10px);
         }
-
-        .user-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
+        .user-list { list-style: none; padding: 0; margin: 0; }
         .user-list li {
-            padding: 12px 15px;
-            background: rgba(255, 255, 255, 0.05);
-            margin-bottom: 10px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            font-size: 1.1rem;
-            transition: background 0.3s ease;
+            padding: 12px 15px; background: rgba(255, 255, 255, 0.05); margin-bottom: 10px;
+            border-radius: 8px; display: flex; align-items: center; font-size: 1.1rem;
         }
+        .user-list li::before { content: "👾"; margin-right: 12px; font-size: 1.3rem; }
 
-        .user-list li:hover {
-            background: rgba(16, 185, 129, 0.2);
-        }
-
-        .user-list li::before {
-            content: "👾"; /* Icono de usuario */
-            margin-right: 12px;
-            font-size: 1.3rem;
-        }
-
-        /* Scrollbar personalizada para la caja de usuarios */
         .users-box::-webkit-scrollbar { width: 6px; }
         .users-box::-webkit-scrollbar-track { background: rgba(0,0,0,0.3); border-radius: 10px; }
         .users-box::-webkit-scrollbar-thumb { background: #10b981; border-radius: 10px; }
-
     </style>
 </head>
 <body>
@@ -207,13 +86,14 @@
     <div class="app-container">
         
         <div id="view-home" class="view active">
-            <button class="btn-green" onclick="goToForm()">Inscribirse</button>
+            <button class="btn-green" id="btn-go-form">Inscribirse</button>
             
             <div class="users-container">
                 <div class="users-title">Usuarios Inscritos</div>
                 <div class="users-box">
                     <ul class="user-list" id="users-list">
-                        </ul>
+                        <li style="justify-content:center; opacity:0.5;">Cargando inscripciones...</li>
+                    </ul>
                 </div>
             </div>
         </div>
@@ -223,136 +103,128 @@
             <input type="text" id="discord-user" placeholder="Usuario#0000" autocomplete="off">
             
             <div class="button-group">
-                <button class="btn-cancel" onclick="goHome()">Cancelar</button>
-                <button class="btn-green" onclick="registerUser()">Inscribirse</button>
+                <button class="btn-cancel" id="btn-cancel">Cancelar</button>
+                <button class="btn-green" id="btn-submit">Inscribirse</button>
             </div>
         </div>
 
     </div>
 
     <script>
-        // --- LÓGICA DE LA INTERFAZ Y LOCALSTORAGE ---
+        const canvas = document.getElementById('canvas-bg');
+        const ctx = canvas.getContext('2d');
+        let w, h, time = 0;
+
+        function resizeCanvas() { w = canvas.width = window.innerWidth; h = canvas.height = window.innerHeight; }
+        window.addEventListener('resize', resizeCanvas); resizeCanvas();
+
+        function renderWaves() {
+            ctx.fillStyle = 'rgba(9, 9, 20, 0.2)'; ctx.fillRect(0, 0, w, h);
+            for (let i = 0; i < 4; i++) {
+                ctx.beginPath(); ctx.strokeStyle = `rgba(16, 185, 129, ${0.15 + (i * 0.15)})`; ctx.lineWidth = 2 + i;
+                for (let x = 0; x < w; x += 15) {
+                    const freq1 = Math.sin(x * 0.005 + time + i); const freq2 = Math.cos(x * 0.01 - time * 1.5);
+                    const atten = Math.max(0, 1 - Math.abs(x - w / 2) / (w / 1.5));
+                    const wave = (freq1 + freq2) * 80 * atten * (i + 0.5);
+                    const y = (h / 2) + wave;
+                    if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+                }
+                ctx.stroke();
+            }
+            time += 0.02; requestAnimationFrame(renderWaves);
+        }
+        renderWaves();
+    </script>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+        // Configuración extraída directamente de tu panel de Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyDKNm31kYh-lLAs-pOWIVLQ0x5PKILyBTM",
+            authDomain: "inscripcionesevento2137612d.firebaseapp.com",
+            projectId: "inscripcionesevento2137612d",
+            storageBucket: "inscripcionesevento2137612d.firebasestorage.app",
+            messagingSenderId: "659015075726",
+            appId: "1:659015075726:web:ac9e83f12e72a43b4dc6df",
+            measurementId: "G-CN3MER5DMZ"
+        };
+
+        // Inicializar la App y la Base de Datos
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Elementos de la interfaz
         const viewHome = document.getElementById('view-home');
         const viewForm = document.getElementById('view-form');
         const discordInput = document.getElementById('discord-user');
         const usersListElement = document.getElementById('users-list');
+        const btnGoForm = document.getElementById('btn-go-form');
+        const btnCancel = document.getElementById('btn-cancel');
+        const btnSubmit = document.getElementById('btn-submit');
 
-        let enrolledUsers = JSON.parse(localStorage.getItem('githubUsersDiscord')) || [];
-        updateUsersUI();
+        // Animación ir al formulario (De izquierda a derecha)
+        btnGoForm.addEventListener('click', () => {
+            viewHome.classList.remove('active'); viewHome.classList.add('hidden-left');
+            viewForm.classList.remove('hidden-right'); viewForm.classList.add('active');
+            setTimeout(() => discordInput.focus(), 600);
+        });
 
-        function goToForm() {
-            // Animación: Inicio se va a la izquierda, Formulario entra desde la derecha
-            viewHome.classList.remove('active');
-            viewHome.classList.add('hidden-left');
-            
-            viewForm.classList.remove('hidden-right');
-            viewForm.classList.add('active');
-            
-            setTimeout(() => discordInput.focus(), 600); // Focus después de la animación
-        }
+        // Animación volver al inicio (De derecha a izquierda)
+        btnCancel.addEventListener('click', () => {
+            viewForm.classList.remove('active'); viewForm.classList.add('hidden-right');
+            viewHome.classList.remove('hidden-left'); viewHome.classList.add('active');
+            discordInput.value = '';
+        });
 
-        function goHome() {
-            // Animación: Formulario se va a la derecha, Inicio entra desde la izquierda
-            viewForm.classList.remove('active');
-            viewForm.classList.add('hidden-right');
-            
-            viewHome.classList.remove('hidden-left');
-            viewHome.classList.add('active');
-            
-            discordInput.value = ''; // Limpiamos el input
-        }
-
-        function registerUser() {
+        // Guardar usuario en la base de datos global en la nube
+        async function registerUser() {
             const user = discordInput.value.trim();
             if (user === '') {
-                // Pequeña animación de error si está vacío
                 discordInput.style.transform = 'translateX(-10px)';
                 setTimeout(() => discordInput.style.transform = 'translateX(10px)', 100);
                 setTimeout(() => discordInput.style.transform = 'translateX(0)', 200);
                 return;
             }
 
-            enrolledUsers.push(user);
-            localStorage.setItem('githubUsersDiscord', JSON.stringify(enrolledUsers));
-            
-            updateUsersUI();
-            goHome();
+            btnSubmit.disabled = true;
+            btnSubmit.textContent = "Guardando...";
+
+            try {
+                await addDoc(collection(db, "inscripciones"), {
+                    username: user,
+                    timestamp: serverTimestamp()
+                });
+                btnCancel.click(); 
+            } catch (error) {
+                console.error("Error al guardar:", error);
+                alert("Error al enviar. Asegúrate de haber activado 'Firestore Database' en modo de prueba en tu panel de Firebase.");
+            } finally {
+                btnSubmit.disabled = false;
+                btnSubmit.textContent = "Inscribirse";
+            }
         }
 
-        function updateUsersUI() {
+        btnSubmit.addEventListener('click', registerUser);
+        discordInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') registerUser(); });
+
+        // Escuchar la base de datos en vivo (Sincroniza a todos los usuarios a la vez)
+        const q = query(collection(db, "inscripciones"), orderBy("timestamp", "desc"));
+        
+        onSnapshot(q, (snapshot) => {
             usersListElement.innerHTML = '';
-            if (enrolledUsers.length === 0) {
+            if (snapshot.empty) {
                 usersListElement.innerHTML = '<li style="justify-content:center; opacity:0.5;">Sé el primero en inscribirte</li>';
                 return;
             }
-            // Mostrar últimos inscritos arriba
-            enrolledUsers.slice().reverse().forEach(user => {
+            
+            snapshot.forEach((doc) => {
+                const data = doc.data();
                 const li = document.createElement('li');
-                li.textContent = user;
+                li.textContent = data.username;
                 usersListElement.appendChild(li);
             });
-        }
-
-        // --- LÓGICA DEL FONDO (Ondas geométricas de música) ---
-        const canvas = document.getElementById('canvas-bg');
-        const ctx = canvas.getContext('2d');
-        let w, h;
-        let time = 0;
-
-        function resizeCanvas() {
-            w = canvas.width = window.innerWidth;
-            h = canvas.height = window.innerHeight;
-        }
-        window.addEventListener('resize', resizeCanvas);
-        resizeCanvas();
-
-        function renderWaves() {
-            // Fondo ligeramente transparente para efecto de estela
-            ctx.fillStyle = 'rgba(9, 9, 20, 0.2)';
-            ctx.fillRect(0, 0, w, h);
-            
-            const lines = 4; // Cantidad de ondas
-            
-            for (let i = 0; i < lines; i++) {
-                ctx.beginPath();
-                // Verdes y turquesas tipo neón
-                ctx.strokeStyle = `rgba(16, 185, 129, ${0.15 + (i * 0.15)})`;
-                ctx.lineWidth = 2 + i;
-
-                for (let x = 0; x < w; x += 15) { // Pasos geométricos (ángulos rectos/picos)
-                    // Fórmulas para simular un ecualizador / ondas
-                    const freq1 = Math.sin(x * 0.005 + time + i);
-                    const freq2 = Math.cos(x * 0.01 - time * 1.5);
-                    
-                    // Concentrar la amplitud en el centro de la pantalla
-                    const distanceToCenter = Math.abs(x - w / 2);
-                    const attenuation = Math.max(0, 1 - distanceToCenter / (w / 1.5));
-                    
-                    // Altura geométrica de la onda
-                    const waveHeight = (freq1 + freq2) * 80 * attenuation * (i + 0.5);
-                    const y = (h / 2) + waveHeight;
-
-                    // Dibujo geométrico (líneas rectas entre puntos espaciados en lugar de curvas suaves)
-                    if (x === 0) {
-                        ctx.moveTo(x, y);
-                    } else {
-                        ctx.lineTo(x, y);
-                    }
-                }
-                ctx.stroke();
-            }
-
-            time += 0.02; // Velocidad de la animación
-            requestAnimationFrame(renderWaves);
-        }
-        
-        renderWaves();
-        
-        // Permitir enviar con la tecla Enter
-        discordInput.addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') {
-                registerUser();
-            }
         });
     </script>
 </body>
