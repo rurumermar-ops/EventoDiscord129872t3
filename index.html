@@ -62,7 +62,11 @@
 
         /* --- CUADRO DE USUARIOS --- */
         .users-container { margin-top: 50px; width: 320px; display: flex; flex-direction: column; align-items: center; }
-        .users-title { font-size: 1.2rem; color: #a7f3d0; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 2px; }
+        
+        .users-title { 
+            font-size: 1.2rem; color: #a7f3d0; margin-bottom: 15px; text-transform: uppercase; 
+            letter-spacing: 2px; user-select: none; cursor: pointer;
+        }
         
         .users-box {
             background: rgba(10, 10, 20, 0.7); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 15px;
@@ -72,10 +76,18 @@
         .user-list li {
             padding: 12px 15px; background: rgba(255, 255, 255, 0.05); margin-bottom: 10px;
             border-radius: 8px; display: flex; align-items: center; font-size: 1.1rem;
-            cursor: pointer; transition: background 0.2s ease;
         }
-        .user-list li:hover { background: rgba(239, 68, 68, 0.2); } /* Se pone rojito al pasar el ratón */
         .user-list li::before { content: "👾"; margin-right: 12px; font-size: 1.3rem; }
+
+        /* --- BOTÓN X PARA BORRAR --- */
+        .btn-delete {
+            background: none; border: none; color: #ef4444; font-size: 1.1rem; font-weight: bold;
+            margin-left: auto; cursor: pointer; display: none; padding: 0 5px; transition: transform 0.2s;
+        }
+        .btn-delete:hover { transform: scale(1.3); color: #dc2626; }
+        
+        /* Esta clase se activa con la clave correcta y muestra las X */
+        body.show-admin-controls .btn-delete { display: block; }
 
         /* Scrollbar */
         .users-box::-webkit-scrollbar { width: 6px; }
@@ -93,10 +105,10 @@
             <button class="btn-green" id="btn-go-form">Inscribirse</button>
             
             <div class="users-container">
-                <div class="users-title">Usuarios Inscritos</div>
+                <div class="users-title" id="admin-trigger">Usuarios Inscritos</div>
                 <div class="users-box">
                     <ul class="user-list" id="users-list">
-                        <li style="justify-content:center; opacity:0.5;">Cargando inscripciones...</li>
+                        <li style="justify-content:center; opacity:0.5; cursor:default;">Cargando inscripciones...</li>
                     </ul>
                 </div>
             </div>
@@ -115,7 +127,6 @@
     </div>
 
     <script>
-        // --- SCRIPT DEL FONDO ANIMADO ---
         const canvas = document.getElementById('canvas-bg');
         const ctx = canvas.getContext('2d');
         let w, h, time = 0;
@@ -131,120 +142,3 @@
                     const freq1 = Math.sin(x * 0.005 + time + i); const freq2 = Math.cos(x * 0.01 - time * 1.5);
                     const atten = Math.max(0, 1 - Math.abs(x - w / 2) / (w / 1.5));
                     const wave = (freq1 + freq2) * 80 * atten * (i + 0.5);
-                    const y = (h / 2) + wave;
-                    if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-                }
-                ctx.stroke();
-            }
-            time += 0.02; requestAnimationFrame(renderWaves);
-        }
-        renderWaves();
-    </script>
-
-    <script type="module">
-        // --- SCRIPT DE FIREBASE ---
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-        // Tu configuración
-        const firebaseConfig = {
-            apiKey: "AIzaSyDKNm31kYh-lLAs-pOWIVLQ0x5PKILyBTM",
-            authDomain: "inscripcionesevento2137612d.firebaseapp.com",
-            projectId: "inscripcionesevento2137612d",
-            storageBucket: "inscripcionesevento2137612d.firebasestorage.app",
-            messagingSenderId: "659015075726",
-            appId: "1:659015075726:web:ac9e83f12e72a43b4dc6df",
-            measurementId: "G-CN3MER5DMZ"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-
-        const viewHome = document.getElementById('view-home');
-        const viewForm = document.getElementById('view-form');
-        const discordInput = document.getElementById('discord-user');
-        const usersListElement = document.getElementById('users-list');
-        const btnGoForm = document.getElementById('btn-go-form');
-        const btnCancel = document.getElementById('btn-cancel');
-        const btnSubmit = document.getElementById('btn-submit');
-
-        // Animaciones
-        btnGoForm.addEventListener('click', () => {
-            viewHome.classList.remove('active'); viewHome.classList.add('hidden-left');
-            viewForm.classList.remove('hidden-right'); viewForm.classList.add('active');
-            setTimeout(() => discordInput.focus(), 600);
-        });
-
-        btnCancel.addEventListener('click', () => {
-            viewForm.classList.remove('active'); viewForm.classList.add('hidden-right');
-            viewHome.classList.remove('hidden-left'); viewHome.classList.add('active');
-            discordInput.value = '';
-        });
-
-        // Guardar
-        async function registerUser() {
-            const user = discordInput.value.trim();
-            if (user === '') {
-                discordInput.style.transform = 'translateX(-10px)';
-                setTimeout(() => discordInput.style.transform = 'translateX(10px)', 100);
-                setTimeout(() => discordInput.style.transform = 'translateX(0)', 200);
-                return;
-            }
-
-            btnSubmit.disabled = true;
-            btnSubmit.textContent = "Guardando...";
-
-            try {
-                await addDoc(collection(db, "inscripciones"), {
-                    username: user,
-                    timestamp: serverTimestamp()
-                });
-                btnCancel.click(); 
-            } catch (error) {
-                console.error(error);
-                alert("Error. Asegúrate de tener las Reglas en Firestore como 'true'.");
-            } finally {
-                btnSubmit.disabled = false;
-                btnSubmit.textContent = "Inscribirse";
-            }
-        }
-
-        btnSubmit.addEventListener('click', registerUser);
-        discordInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') registerUser(); });
-
-        // Escuchar datos en vivo y función de doble clic
-        const q = query(collection(db, "inscripciones"), orderBy("timestamp", "desc"));
-        
-        onSnapshot(q, (snapshot) => {
-            usersListElement.innerHTML = '';
-            if (snapshot.empty) {
-                usersListElement.innerHTML = '<li style="justify-content:center; opacity:0.5; cursor:default;">Aún no hay inscritos</li>';
-                return;
-            }
-            
-            snapshot.forEach((documentoFirebase) => {
-                const data = documentoFirebase.data();
-                
-                // Crear el elemento de la lista
-                const li = document.createElement('li');
-                li.textContent = data.username;
-                li.title = "Doble clic para borrar este usuario"; // Texto que sale al pasar el ratón
-
-                // Evento para borrar al hacer DOBLE CLIC en el nombre
-                li.addEventListener('dblclick', async () => {
-                    const confirmar = confirm(`¿Seguro que quieres borrar a ${data.username}?`);
-                    if (confirmar) {
-                        try {
-                            await deleteDoc(doc(db, "inscripciones", documentoFirebase.id));
-                        } catch (error) {
-                            alert("Hubo un error al intentar borrar.");
-                        }
-                    }
-                });
-
-                usersListElement.appendChild(li);
-            });
-        });
-    </script>
-</body>
-</html>
