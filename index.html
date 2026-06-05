@@ -9,7 +9,7 @@
         body, html {
             margin: 0; padding: 0; width: 100%; height: 100vh;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #090914; color: #ffffff; overflow: hidden;
+            background-color: #04060e; color: #ffffff; overflow: hidden;
         }
 
         #canvas-bg {
@@ -35,11 +35,12 @@
         /* --- BOTONES --- */
         .btn-green {
             background-color: #10b981; color: white; border: none; border-radius: 50px;
-            padding: 15px 40px; font-size: 1.2rem; font-weight: bold; cursor: pointer;
-            box-shadow: 0 0 25px 8px rgba(52, 211, 153, 0.5); transition: all 0.3s ease;
+            padding: 16px 45px; font-size: 1.3rem; font-weight: bold; cursor: pointer;
+            box-shadow: 0 0 30px 10px rgba(52, 211, 153, 0.6); transition: all 0.3s ease;
+            letter-spacing: 1px;
         }
         .btn-green:hover {
-            background-color: #059669; box-shadow: 0 0 35px 12px rgba(52, 211, 153, 0.8); transform: scale(1.05);
+            background-color: #059669; box-shadow: 0 0 45px 15px rgba(52, 211, 153, 0.9); transform: scale(1.05);
         }
         .btn-green:disabled { background-color: #6ee7b7; cursor: not-allowed; transform: none; box-shadow: none; }
 
@@ -55,38 +56,45 @@
         h2 { font-size: 2rem; text-align: center; margin-bottom: 30px; text-shadow: 0 2px 10px rgba(0,0,0,0.8); }
         input[type="text"] {
             padding: 15px 25px; border-radius: 30px; border: 2px solid rgba(16, 185, 129, 0.5);
-            background: rgba(255, 255, 255, 0.05); color: white; font-size: 1.2rem;
+            background: rgba(4, 6, 14, 0.6); color: white; font-size: 1.2rem;
             width: 80%; text-align: center; outline: none; transition: all 0.3s ease; backdrop-filter: blur(5px);
         }
         input[type="text"]:focus { border-color: #10b981; box-shadow: 0 0 20px rgba(16, 185, 129, 0.4); background: rgba(255, 255, 255, 0.1); }
 
         /* --- CUADRO DE USUARIOS --- */
-        .users-container { margin-top: 50px; width: 320px; display: flex; flex-direction: column; align-items: center; }
+        .users-container { margin-top: 40px; width: 340px; display: flex; flex-direction: column; align-items: center; }
         
         .users-title-wrapper {
-            display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 15px;
+            display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 12px;
         }
 
         .users-title { 
-            font-size: 1.2rem; color: #a7f3d0; text-transform: uppercase; letter-spacing: 2px; user-select: none;
+            font-size: 1.1rem; color: #a7f3d0; text-transform: uppercase; letter-spacing: 2px; user-select: none;
+            text-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
         }
 
-        /* El punto verde secreto */
         .admin-dot {
             color: #10b981; font-size: 0.8rem; cursor: pointer; user-select: none; transition: opacity 0.2s;
         }
         .admin-dot:hover { opacity: 0.7; }
         
         .users-box {
-            background: rgba(10, 10, 20, 0.7); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 15px;
-            width: 100%; height: 200px; overflow-y: auto; padding: 15px; box-sizing: border-box; backdrop-filter: blur(10px);
+            background: rgba(5, 8, 20, 0.75); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 15px;
+            width: 100%; height: 180px; overflow-y: auto; padding: 15px; box-sizing: border-box; backdrop-filter: blur(10px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.7);
         }
         .user-list { list-style: none; padding: 0; margin: 0; }
         .user-list li {
-            padding: 12px 15px; background: rgba(255, 255, 255, 0.05); margin-bottom: 10px;
-            border-radius: 8px; display: flex; align-items: center; font-size: 1.1rem;
+            padding: 10px 14px; background: rgba(255, 255, 255, 0.03); margin-bottom: 8px;
+            border-radius: 8px; display: flex; align-items: center; font-size: 1.05rem;
+            border-left: 3px solid #10b981;
         }
-        .user-list li::before { content: "👾"; margin-right: 12px; font-size: 1.3rem; }
+        .user-list li::before { content: "👾"; margin-right: 10px; font-size: 1.1rem; }
+
+        .users-count {
+            margin-top: 12px; font-size: 0.95rem; color: #6ee7b7; font-weight: 500;
+            letter-spacing: 1px; text-shadow: 0 2px 5px rgba(0,0,0,0.5);
+        }
 
         /* --- BOTÓN X PARA BORRAR --- */
         .btn-delete {
@@ -122,6 +130,7 @@
                         <li style="justify-content:center; opacity:0.5; cursor:default;">Cargando inscripciones...</li>
                     </ul>
                 </div>
+                <div class="users-count" id="users-counter">Total inscritos: 0</div>
             </div>
         </div>
 
@@ -142,25 +151,99 @@
         const ctx = canvas.getContext('2d');
         let w, h, time = 0;
 
-        function resizeCanvas() { w = canvas.width = window.innerWidth; h = canvas.height = window.innerHeight; }
-        window.addEventListener('resize', resizeCanvas); resizeCanvas();
+        function resizeCanvas() { 
+            w = canvas.width = window.innerWidth; 
+            h = canvas.height = window.innerHeight; 
+        }
+        window.addEventListener('resize', resizeCanvas); 
+        resizeCanvas();
 
-        function renderWaves() {
-            ctx.fillStyle = 'rgba(9, 9, 20, 0.2)'; ctx.fillRect(0, 0, w, h);
-            for (let i = 0; i < 4; i++) {
-                ctx.beginPath(); ctx.strokeStyle = `rgba(16, 185, 129, ${0.15 + (i * 0.15)})`; ctx.lineWidth = 2 + i;
-                for (let x = 0; x < w; x += 15) {
-                    const freq1 = Math.sin(x * 0.005 + time + i); const freq2 = Math.cos(x * 0.01 - time * 1.5);
-                    const atten = Math.max(0, 1 - Math.abs(x - w / 2) / (w / 1.5));
-                    const wave = (freq1 + freq2) * 80 * atten * (i + 0.5);
-                    const y = (h / 2) + wave;
+        // Estructura de partículas flotantes
+        const particles = [];
+        for(let i = 0; i < 40; i++) {
+            particles.push({
+                x: Math.random() * window.innerWidth,
+                y: Math.random() * window.innerHeight,
+                size: Math.random() * 2 + 1,
+                speedX: Math.random() * 0.5 - 0.25,
+                speedY: Math.random() * 0.5 - 0.25
+            });
+        }
+
+        function renderAdvancedBackground() {
+            // Fondo oscuro base con efecto túnel/degradado
+            let bgGrad = ctx.createRadialGradient(w/2, h/2, 10, w/2, h/2, Math.max(w, h));
+            bgGrad.addColorStop(0, '#0a1128');
+            bgGrad.addColorStop(1, '#03050a');
+            ctx.fillStyle = bgGrad;
+            ctx.fillRect(0, 0, w, h);
+
+            // 1. DIBUJAR SUELO DE LÍNEAS GEOMÉTRICAS (Perspectiva 3D)
+            ctx.strokeStyle = 'rgba(0, 168, 204, 0.05)';
+            ctx.lineWidth = 1;
+            const horizon = h * 0.4;
+            // Líneas de fuga (perspectiva)
+            for (let x = -w; x < w * 2; x += 60) {
+                ctx.beginPath();
+                ctx.moveTo(w / 2, horizon);
+                ctx.lineTo(x, h);
+                ctx.stroke();
+            }
+            // Líneas horizontales en perspectiva
+            for (let y = horizon; y < h; y += (h - y) * 0.15 + 4) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(w, y);
+                ctx.stroke();
+            }
+
+            // 2. PARTÍCULAS EN MOVIMIENTO
+            ctx.fillStyle = 'rgba(16, 185, 129, 0.3)';
+            particles.forEach(p => {
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fill();
+                p.x += p.speedX;
+                p.y += p.speedY;
+                if(p.x < 0 || p.x > w) p.speedX *= -1;
+                if(p.y < 0 || p.y > h) p.speedY *= -1;
+            });
+
+            // 3. ONDAS DE AUDIO NEÓN (ECUALIZADOR EN MOVIMIENTO)
+            const numWaves = 5;
+            for (let i = 0; i < numWaves; i++) {
+                ctx.beginPath();
+                // Alterna entre tonalidades cian, verde neón y turquesa
+                if (i % 2 === 0) {
+                    ctx.strokeStyle = `rgba(16, 185, 129, ${0.12 + (i * 0.06)})`; // Verde
+                } else {
+                    ctx.strokeStyle = `rgba(0, 212, 255, ${0.1 + (i * 0.05)})`; // Cian/Azul
+                }
+                ctx.lineWidth = 1.5 + (i * 0.5);
+
+                for (let x = 0; x < w; x += 10) {
+                    // Combinación de senos y cosenos para simular picos de música dinámicos
+                    const f1 = Math.sin(x * 0.006 + time * 1.2 + i);
+                    const f2 = Math.cos(x * 0.012 - time * 0.8 + (i * 2));
+                    const f3 = Math.sin(x * 0.002 + time * 2);
+
+                    // Amortiguación en los bordes de la pantalla
+                    const distCenter = Math.abs(x - w / 2);
+                    const factor = Math.max(0, 1 - distCenter / (w / 1.3));
+
+                    // Altura total combinada de la onda geométrica
+                    const waveHeight = (f1 * 40 + f2 * 25 + f3 * 15) * factor * (1 + i * 0.3);
+                    const y = (h * 0.5) + waveHeight;
+
                     if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
                 }
                 ctx.stroke();
             }
-            time += 0.02; requestAnimationFrame(renderWaves);
+
+            time += 0.02; // Velocidad general de las ondas musicales
+            requestAnimationFrame(renderAdvancedBackground);
         }
-        renderWaves();
+        renderAdvancedBackground();
     </script>
 
     <script type="module">
@@ -184,12 +267,13 @@
         const viewForm = document.getElementById('view-form');
         const discordInput = document.getElementById('discord-user');
         const usersListElement = document.getElementById('users-list');
+        const usersCounterElement = document.getElementById('users-counter');
         const btnGoForm = document.getElementById('btn-go-form');
         const btnCancel = document.getElementById('btn-cancel');
         const btnSubmit = document.getElementById('btn-submit');
         const adminDotTrigger = document.getElementById('admin-dot-trigger');
 
-        // UN SOLO CLIC EN EL PUNTO VERDE PARA EL PANEL
+        // Activación del panel mediante el punto verde
         adminDotTrigger.addEventListener('click', () => {
             const clave = prompt("Panel de administración");
             if (clave === "0877") {
@@ -213,7 +297,7 @@
             discordInput.value = '';
         });
 
-        // Guardar usuarios
+        // Registro de datos
         async function registerUser() {
             const user = discordInput.value.trim();
             if (user === '') {
@@ -244,11 +328,15 @@
         btnSubmit.addEventListener('click', registerUser);
         discordInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') registerUser(); });
 
-        // Base de datos en tiempo real
+        // Sincronización en directo de la lista y el contador
         const q = query(collection(db, "inscripciones"), orderBy("timestamp", "desc"));
         
         onSnapshot(q, (snapshot) => {
             usersListElement.innerHTML = '';
+            
+            const totalInscritos = snapshot.size;
+            usersCounterElement.textContent = `Total inscritos: ${totalInscritos}`;
+            
             if (snapshot.empty) {
                 usersListElement.innerHTML = '<li style="justify-content:center; opacity:0.5; cursor:default;">Aún no hay inscritos</li>';
                 return;
