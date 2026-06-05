@@ -158,92 +158,106 @@
         window.addEventListener('resize', resizeCanvas); 
         resizeCanvas();
 
-        // Estructura de partículas flotantes
-        const particles = [];
-        for(let i = 0; i < 40; i++) {
-            particles.push({
+        // Nodos matemáticos flotantes
+        const mathNodes = [];
+        for(let i = 0; i < 30; i++) {
+            mathNodes.push({
                 x: Math.random() * window.innerWidth,
                 y: Math.random() * window.innerHeight,
-                size: Math.random() * 2 + 1,
-                speedX: Math.random() * 0.5 - 0.25,
-                speedY: Math.random() * 0.5 - 0.25
+                radius: Math.random() * 2 + 1,
+                vx: (Math.random() - 0.5) * 0.4,
+                vy: (Math.random() - 0.5) * 0.4
             });
         }
 
-        function renderAdvancedBackground() {
-            // Fondo oscuro base con efecto túnel/degradado
-            let bgGrad = ctx.createRadialGradient(w/2, h/2, 10, w/2, h/2, Math.max(w, h));
-            bgGrad.addColorStop(0, '#0a1128');
-            bgGrad.addColorStop(1, '#03050a');
-            ctx.fillStyle = bgGrad;
+        function drawMathBackground() {
+            // Capa base oscura con gradiente radial matemático
+            let gradient = ctx.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, Math.max(w, h));
+            gradient.addColorStop(0, '#070c1e');
+            gradient.addColorStop(1, '#020307');
+            ctx.fillStyle = gradient;
             ctx.fillRect(0, 0, w, h);
 
-            // 1. DIBUJAR SUELO DE LÍNEAS GEOMÉTRICAS (Perspectiva 3D)
-            ctx.strokeStyle = 'rgba(0, 168, 204, 0.05)';
+            // 1. MALLA GEOMÉTRICA (Líneas de perspectiva matemática)
+            ctx.strokeStyle = 'rgba(16, 185, 129, 0.03)';
             ctx.lineWidth = 1;
-            const horizon = h * 0.4;
-            // Líneas de fuga (perspectiva)
-            for (let x = -w; x < w * 2; x += 60) {
+            const centerHeight = h * 0.5;
+            
+            for (let i = -w; i < w * 2; i += 50) {
                 ctx.beginPath();
-                ctx.moveTo(w / 2, horizon);
-                ctx.lineTo(x, h);
+                ctx.moveTo(w / 2, centerHeight);
+                ctx.lineTo(i, h);
                 ctx.stroke();
-            }
-            // Líneas horizontales en perspectiva
-            for (let y = horizon; y < h; y += (h - y) * 0.15 + 4) {
+                
                 ctx.beginPath();
-                ctx.moveTo(0, y);
-                ctx.lineTo(w, y);
+                ctx.moveTo(w / 2, centerHeight);
+                ctx.lineTo(i, 0);
                 ctx.stroke();
             }
 
-            // 2. PARTÍCULAS EN MOVIMIENTO
-            ctx.fillStyle = 'rgba(16, 185, 129, 0.3)';
-            particles.forEach(p => {
+            // 2. VECTORES / NODOS INTERCONECTADOS
+            ctx.fillStyle = 'rgba(0, 212, 255, 0.2)';
+            ctx.strokeStyle = 'rgba(0, 212, 255, 0.03)';
+            mathNodes.forEach((node, index) => {
                 ctx.beginPath();
-                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.arc(node.x, node.y, node.radius, 0, Math.PI * 2);
                 ctx.fill();
-                p.x += p.speedX;
-                p.y += p.speedY;
-                if(p.x < 0 || p.x > w) p.speedX *= -1;
-                if(p.y < 0 || p.y > h) p.speedY *= -1;
+
+                node.x += node.vx;
+                node.y += node.vy;
+
+                if (node.x < 0 || node.x > w) node.vx *= -1;
+                if (node.y < 0 || node.y > h) node.vy *= -1;
+
+                // Dibujar líneas entre nodos cercanos
+                for (let j = index + 1; j < mathNodes.length; j++) {
+                    const other = mathNodes[j];
+                    const dist = Math.hypot(node.x - other.x, node.y - other.y);
+                    if (dist < 120) {
+                        ctx.beginPath();
+                        ctx.moveTo(node.x, node.y);
+                        ctx.lineTo(other.x, other.y);
+                        ctx.stroke();
+                    }
+                }
             });
 
-            // 3. ONDAS DE AUDIO NEÓN (ECUALIZADOR EN MOVIMIENTO)
-            const numWaves = 5;
-            for (let i = 0; i < numWaves; i++) {
+            // 3. SEÑALES DE ONDA MATEMÁTICA MULTICAPA (Ecualizador trigonométrico)
+            const totalWaves = 6;
+            for (let wIndex = 0; wIndex < totalWaves; wIndex++) {
                 ctx.beginPath();
-                // Alterna entre tonalidades cian, verde neón y turquesa
-                if (i % 2 === 0) {
-                    ctx.strokeStyle = `rgba(16, 185, 129, ${0.12 + (i * 0.06)})`; // Verde
+                
+                // Mezcla matemática de colores neón según la capa de la onda
+                if (wIndex % 2 === 0) {
+                    ctx.strokeStyle = `rgba(16, 185, 129, ${0.08 + (wIndex * 0.04)})`; // Verde Neón
                 } else {
-                    ctx.strokeStyle = `rgba(0, 212, 255, ${0.1 + (i * 0.05)})`; // Cian/Azul
+                    ctx.strokeStyle = `rgba(0, 212, 255, ${0.08 + (wIndex * 0.04)})`; // Cian Electrónico
                 }
-                ctx.lineWidth = 1.5 + (i * 0.5);
+                ctx.lineWidth = 1 + wIndex * 0.5;
 
-                for (let x = 0; x < w; x += 10) {
-                    // Combinación de senos y cosenos para simular picos de música dinámicos
-                    const f1 = Math.sin(x * 0.006 + time * 1.2 + i);
-                    const f2 = Math.cos(x * 0.012 - time * 0.8 + (i * 2));
-                    const f3 = Math.sin(x * 0.002 + time * 2);
+                for (let x = 0; x < w; x += 8) {
+                    // Ecuación armónica compuesta para generar ondas de frecuencia tipo audio
+                    const sin1 = Math.sin(x * 0.008 + time * 1.5 + wIndex);
+                    const sin2 = Math.sin(x * 0.02 + time * 0.7 - wIndex);
+                    const cos1 = Math.cos(x * 0.004 - time * 1.1 + wIndex * 1.5);
 
-                    // Amortiguación en los bordes de la pantalla
-                    const distCenter = Math.abs(x - w / 2);
-                    const factor = Math.max(0, 1 - distCenter / (w / 1.3));
+                    // Función de Gauss/Atenuación central para concentrar la fuerza matemática en el medio
+                    const centerDist = Math.abs(x - w / 2);
+                    const envelope = Math.exp(-Math.pow(centerDist / (w * 0.35), 2));
 
-                    // Altura total combinada de la onda geométrica
-                    const waveHeight = (f1 * 40 + f2 * 25 + f3 * 15) * factor * (1 + i * 0.3);
-                    const y = (h * 0.5) + waveHeight;
+                    // Altura total calculada
+                    const amplitude = (sin1 * 50 + sin2 * 25 + cos1 * 15) * envelope;
+                    const y = centerHeight + amplitude;
 
                     if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
                 }
                 ctx.stroke();
             }
 
-            time += 0.02; // Velocidad general de las ondas musicales
-            requestAnimationFrame(renderAdvancedBackground);
+            time += 0.015; // Incremento del factor de tiempo para la animación
+            requestAnimationFrame(drawMathBackground);
         }
-        renderAdvancedBackground();
+        drawMathBackground();
     </script>
 
     <script type="module">
@@ -273,7 +287,6 @@
         const btnSubmit = document.getElementById('btn-submit');
         const adminDotTrigger = document.getElementById('admin-dot-trigger');
 
-        // Activación del panel mediante el punto verde
         adminDotTrigger.addEventListener('click', () => {
             const clave = prompt("Panel de administración");
             if (clave === "0877") {
@@ -284,7 +297,6 @@
             }
         });
 
-        // Transiciones
         btnGoForm.addEventListener('click', () => {
             viewHome.classList.remove('active'); viewHome.classList.add('hidden-left');
             viewForm.classList.remove('hidden-right'); viewForm.classList.add('active');
@@ -297,7 +309,6 @@
             discordInput.value = '';
         });
 
-        // Registro de datos
         async function registerUser() {
             const user = discordInput.value.trim();
             if (user === '') {
@@ -328,7 +339,6 @@
         btnSubmit.addEventListener('click', registerUser);
         discordInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') registerUser(); });
 
-        // Sincronización en directo de la lista y el contador
         const q = query(collection(db, "inscripciones"), orderBy("timestamp", "desc"));
         
         onSnapshot(q, (snapshot) => {
