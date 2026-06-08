@@ -13,24 +13,26 @@
             overflow-x: hidden;
         }
 
-        /* CAPA DE TU IMAGEN DE FONDO CORREGIDA A MAYÚSCULAS */
+        /* CAPA DE TU IMAGEN DE FONDO (Corregida la superposición) */
         .bg-image {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background-image: url('tete.PNG'); /* Cambiado a .PNG para coincidir con tu archivo */
+            background-image: url('tete.PNG');
             background-size: cover; background-position: center;
             opacity: 0.25; 
             filter: blur(3px); 
-            z-index: -2;
+            z-index: 1; /* Pasa al frente del fondo negro */
         }
 
         /* CANVAS DE ONDAS MATEMÁTICAS */
         #canvas-bg {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            z-index: 2; /* Se dibuja por encima de la imagen */
         }
 
         .app-container {
             position: relative; width: 100%; min-height: 100vh;
             display: flex; justify-content: center; align-items: flex-start;
+            z-index: 3; /* Asegura que todo el contenido interactivo esté arriba del canvas */
         }
 
         /* VISTAS CON ANIMACIÓN DE LADO A LADO */
@@ -215,7 +217,7 @@
         }
 
         function drawMathBackground() {
-            ctx.clearRect(0, 0, w, h); // Deja ver la imagen de fondo limpia detrás
+            ctx.clearRect(0, 0, w, h); 
 
             ctx.strokeStyle = 'rgba(16, 185, 129, 0.04)'; ctx.lineWidth = 1;
             const centerHeight = h * 0.5;
