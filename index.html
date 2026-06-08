@@ -13,12 +13,12 @@
             overflow-x: hidden;
         }
 
-        /* CAPA DE TU IMAGEN DE FONDO (EN MINÚSCULAS) */
+        /* CAPA DE TU IMAGEN DE FONDO CORREGIDA A MAYÚSCULAS */
         .bg-image {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background-image: url('tete.png'); /* Ruta exacta en minúsculas */
+            background-image: url('tete.PNG'); /* Cambiado a .PNG para coincidir con tu archivo */
             background-size: cover; background-position: center;
-            opacity: 0.22; 
+            opacity: 0.25; 
             filter: blur(3px); 
             z-index: -2;
         }
@@ -215,7 +215,7 @@
         }
 
         function drawMathBackground() {
-            ctx.clearRect(0, 0, w, h);
+            ctx.clearRect(0, 0, w, h); // Deja ver la imagen de fondo limpia detrás
 
             ctx.strokeStyle = 'rgba(16, 185, 129, 0.04)'; ctx.lineWidth = 1;
             const centerHeight = h * 0.5;
