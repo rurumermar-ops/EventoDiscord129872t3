@@ -12,14 +12,14 @@
             color: #ffffff;
             overflow-x: hidden;
 
-            /* Imagen directamente en el cuerpo con un degradado oscuro encima */
-            background-image: linear-gradient(rgba(4, 6, 14, 0.8), rgba(4, 6, 14, 0.8)), url('tete.png');
+            /* Imagen de fondo fija con una capa oscura encima */
+            background-image: linear-gradient(rgba(4, 6, 14, 0.75), rgba(4, 6, 14, 0.75)), url('tete.png');
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
         }
 
-        /* CANVAS DE ONDAS MATEMÁTICAS */
+        /* CANVAS PARA EFECTOS DE ENFOQUES DE SOL Y LUCES */
         #canvas-bg {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1;
             pointer-events: none;
@@ -43,7 +43,7 @@
         .view.hidden-left { transform: translateX(-150%); position: absolute; }
         .view.hidden-right { transform: translateX(150%); position: absolute; }
 
-        /* --- NUEVAS ANIMACIONES DE ENTRADA --- */
+        /* --- ANIMACIONES DE ENTRADA SUAVE --- */
         @keyframes fadeInUp {
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
@@ -53,7 +53,7 @@
             animation: fadeInUp 0.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
         }
 
-        /* --- BOTONES PERFECCIONADOS Y SIMÉTRICOS --- */
+        /* --- BOTONES PERFECTAMENTE SIMÉTRICOS --- */
         .btn-green, .btn-cancel {
             font-size: 1.2rem; font-weight: bold; cursor: pointer; letter-spacing: 1px;
             padding: 15px 40px; border-radius: 50px; border: none;
@@ -222,59 +222,69 @@
     <script>
         const canvas = document.getElementById('canvas-bg');
         const ctx = canvas.getContext('2d');
-        let w, h, time = 0;
+        let w, h, angle = 0;
 
         function resizeCanvas() { w = canvas.width = window.innerWidth; h = canvas.height = window.innerHeight; }
         window.addEventListener('resize', resizeCanvas); resizeCanvas();
 
-        const mathNodes = [];
-        for(let i = 0; i < 30; i++) {
-            mathNodes.push({
-                x: Math.random() * window.innerWidth, y: Math.random() * window.innerHeight,
-                radius: Math.random() * 2 + 1, vx: (Math.random() - 0.5) * 0.4, vy: (Math.random() - 0.5) * 0.4
+        // Creamos partículas de destellos de luz (Flares)
+        const lightFlares = [];
+        for(let i = 0; i < 12; i++) {
+            lightFlares.push({
+                x: Math.random() * window.innerWidth,
+                y: Math.random() * window.innerHeight,
+                radius: Math.random() * 120 + 60,
+                alpha: Math.random() * 0.15 + 0.05,
+                speed: Math.random() * 0.005 + 0.002,
+                phase: Math.random() * Math.PI
             });
         }
 
-        function drawMathBackground() {
-            ctx.clearRect(0, 0, w, h); 
+        function drawSunRaysBackground() {
+            ctx.clearRect(0, 0, w, h); // Deja ver tu fondo transparente
 
-            ctx.strokeStyle = 'rgba(16, 185, 129, 0.05)'; ctx.lineWidth = 1;
-            const centerHeight = h * 0.5;
-            for (let i = -w; i < w * 2; i += 50) {
-                ctx.beginPath(); ctx.moveTo(w / 2, centerHeight); ctx.lineTo(i, h); ctx.stroke();
-                ctx.beginPath(); ctx.moveTo(w / 2, centerHeight); ctx.lineTo(i, 0); ctx.stroke();
-            }
-
-            ctx.fillStyle = 'rgba(0, 212, 255, 0.2)'; ctx.strokeStyle = 'rgba(0, 212, 255, 0.03)';
-            mathNodes.forEach((node, index) => {
-                ctx.beginPath(); ctx.arc(node.x, node.y, node.radius, 0, Math.PI * 2); ctx.fill();
-                node.x += node.vx; node.y += node.vy;
-                if (node.x < 0 || node.x > w) node.vx *= -1; if (node.y < 0 || node.y > h) node.vy *= -1;
-                for (let j = index + 1; j < mathNodes.length; j++) {
-                    const other = mathNodes[j]; const dist = Math.hypot(node.x - other.x, node.y - other.y);
-                    if (dist < 120) { ctx.beginPath(); ctx.moveTo(node.x, node.y); ctx.lineTo(other.x, other.y); ctx.stroke(); }
-                }
-            });
-
-            const totalWaves = 6;
-            for (let wIndex = 0; wIndex < totalWaves; wIndex++) {
+            // 1. GENERACIÓN DE RAYOS DE SOL (Sun Rays ambientales desde la esquina superior izquierda)
+            ctx.save();
+            ctx.translate(0, 0); // Foco de origen del sol (puedes cambiarlo si quieres)
+            ctx.rotate(angle);
+            
+            const numRays = 24;
+            const rayAngle = (Math.PI * 2) / numRays;
+            
+            for (let i = 0; i < numRays; i++) {
                 ctx.beginPath();
-                if (wIndex % 2 === 0) ctx.strokeStyle = `rgba(16, 185, 129, ${0.08 + (wIndex * 0.04)})`;
-                else ctx.strokeStyle = `rgba(0, 212, 255, ${0.08 + (wIndex * 0.04)})`;
-                ctx.lineWidth = 1 + wIndex * 0.5;
-
-                for (let x = 0; x < w; x += 8) {
-                    const sin1 = Math.sin(x * 0.008 + time * 1.5 + wIndex); const sin2 = Math.sin(x * 0.02 + time * 0.7 - wIndex);
-                    const cos1 = Math.cos(x * 0.004 - time * 1.1 + wIndex * 1.5);
-                    const centerDist = Math.abs(x - w / 2); const envelope = Math.exp(-Math.pow(centerDist / (w * 0.35), 2));
-                    const amplitude = (sin1 * 50 + sin2 * 25 + cos1 * 15) * envelope; const y = centerHeight + amplitude;
-                    if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-                }
-                ctx.stroke();
+                ctx.moveTo(0, 0);
+                // Crea un cono de luz expandido hacia afuera
+                ctx.arc(0, 0, Math.max(w, h) * 1.5, i * rayAngle, i * rayAngle + (rayAngle * 0.4));
+                ctx.lineTo(0, 0);
+                
+                // Color turquesa/verde esmeralda neón hiper suave para simular haz de luz solar filtrada
+                ctx.fillStyle = 'rgba(16, 185, 129, 0.012)';
+                ctx.fill();
             }
-            time += 0.015; requestAnimationFrame(drawMathBackground);
+            ctx.restore();
+
+            // 2. ENFOQUES DE LUZ FLOTANTES (Glow Light Leaks)
+            lightFlares.forEach(flare => {
+                flare.phase += flare.speed;
+                // Hace que la luz aparezca y desaparezca de forma orgánica
+                let currentAlpha = flare.alpha * (Math.sin(flare.phase) * 0.5 + 0.5);
+
+                let radialGlow = ctx.createRadialGradient(flare.x, flare.y, 0, flare.x, flare.y, flare.radius);
+                radialGlow.addColorStop(0, `rgba(0, 212, 255, ${currentAlpha})`); // Centro azul cian neón
+                radialGlow.addColorStop(0.5, `rgba(16, 185, 129, ${currentAlpha * 0.4})`); // Medio verde neón
+                radialGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
+
+                ctx.fillStyle = radialGlow;
+                ctx.beginPath();
+                ctx.arc(flare.x, flare.y, flare.radius, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            angle += 0.001; // Rotación lenta de los rayos de sol
+            requestAnimationFrame(drawSunRaysBackground);
         }
-        drawMathBackground();
+        drawSunRaysBackground();
     </script>
 
     <script type="module">
