@@ -12,11 +12,47 @@
             color: #ffffff;
             overflow-x: hidden;
 
-            /* Imagen de fondo fija con una capa oscura encima */
             background-image: linear-gradient(rgba(4, 6, 14, 0.75), rgba(4, 6, 14, 0.75)), url('tete.png');
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
+        }
+
+        /* LOGO FLOTANTE DE DISCORD ABAJO A LA IZQUIERDA */
+        .discord-float-logo {
+            position: fixed;
+            bottom: 25px;
+            left: 25px;
+            width: 65px;
+            height: 65px;
+            border-radius: 50%;
+            background-image: url('imagen discord.jpg'); /* Nombre exacto del archivo subido */
+            background-size: cover;
+            background-position: center;
+            z-index: 10;
+            cursor: pointer;
+            
+            /* Unimos la animación flotante y la del brillo neón */
+            animation: floatMove 3s ease-in-out infinite, neonGlow 2s ease-in-out infinite;
+            transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+
+        .discord-float-logo:hover {
+            transform: scale(1.15);
+        }
+
+        /* Animación para que flote suave de arriba a abajo */
+        @keyframes floatMove {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+
+        /* Animación de los destellos y el brillo neón azul */
+        @keyframes neonGlow {
+            0% { box-shadow: 0 0 15px 2px rgba(0, 212, 255, 0.4), inset 0 0 10px rgba(0, 212, 255, 0.2); border: 2px solid rgba(0, 212, 255, 0.6); }
+            50% { box-shadow: 0 0 30px 10px rgba(0, 212, 255, 0.8), inset 0 0 15px rgba(0, 212, 255, 0.4); border: 2px solid rgba(0, 212, 255, 1); }
+            100% { box-shadow: 0 0 15px 2px rgba(0, 212, 255, 0.4), inset 0 0 10px rgba(0, 212, 255, 0.2); border: 2px solid rgba(0, 212, 255, 0.6); }
         }
 
         /* CANVAS PARA EFECTOS DE ENFOQUES DE SOL Y LUCES */
@@ -164,6 +200,8 @@
 </head>
 <body>
 
+    <a href="https://discord.gg/GzfUbcRrQM" target="_blank" class="discord-float-logo" title="¡Únete a nuestro Discord!"></a>
+
     <canvas id="canvas-bg"></canvas>
 
     <div class="app-container">
@@ -227,7 +265,6 @@
         function resizeCanvas() { w = canvas.width = window.innerWidth; h = canvas.height = window.innerHeight; }
         window.addEventListener('resize', resizeCanvas); resizeCanvas();
 
-        // Creamos partículas de destellos de luz (Flares)
         const lightFlares = [];
         for(let i = 0; i < 12; i++) {
             lightFlares.push({
@@ -241,11 +278,10 @@
         }
 
         function drawSunRaysBackground() {
-            ctx.clearRect(0, 0, w, h); // Deja ver tu fondo transparente
+            ctx.clearRect(0, 0, w, h);
 
-            // 1. GENERACIÓN DE RAYOS DE SOL (Sun Rays ambientales desde la esquina superior izquierda)
             ctx.save();
-            ctx.translate(0, 0); // Foco de origen del sol (puedes cambiarlo si quieres)
+            ctx.translate(0, 0);
             ctx.rotate(angle);
             
             const numRays = 24;
@@ -254,25 +290,20 @@
             for (let i = 0; i < numRays; i++) {
                 ctx.beginPath();
                 ctx.moveTo(0, 0);
-                // Crea un cono de luz expandido hacia afuera
                 ctx.arc(0, 0, Math.max(w, h) * 1.5, i * rayAngle, i * rayAngle + (rayAngle * 0.4));
                 ctx.lineTo(0, 0);
-                
-                // Color turquesa/verde esmeralda neón hiper suave para simular haz de luz solar filtrada
                 ctx.fillStyle = 'rgba(16, 185, 129, 0.012)';
                 ctx.fill();
             }
             ctx.restore();
 
-            // 2. ENFOQUES DE LUZ FLOTANTES (Glow Light Leaks)
             lightFlares.forEach(flare => {
                 flare.phase += flare.speed;
-                // Hace que la luz aparezca y desaparezca de forma orgánica
                 let currentAlpha = flare.alpha * (Math.sin(flare.phase) * 0.5 + 0.5);
 
                 let radialGlow = ctx.createRadialGradient(flare.x, flare.y, 0, flare.x, flare.y, flare.radius);
-                radialGlow.addColorStop(0, `rgba(0, 212, 255, ${currentAlpha})`); // Centro azul cian neón
-                radialGlow.addColorStop(0.5, `rgba(16, 185, 129, ${currentAlpha * 0.4})`); // Medio verde neón
+                radialGlow.addColorStop(0, `rgba(0, 212, 255, ${currentAlpha})`);
+                radialGlow.addColorStop(0.5, `rgba(16, 185, 129, ${currentAlpha * 0.4})`);
                 radialGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
 
                 ctx.fillStyle = radialGlow;
@@ -281,7 +312,7 @@
                 ctx.fill();
             });
 
-            angle += 0.001; // Rotación lenta de los rayos de sol
+            angle += 0.001;
             requestAnimationFrame(drawSunRaysBackground);
         }
         drawSunRaysBackground();
