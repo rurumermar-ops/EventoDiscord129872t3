@@ -30,24 +30,33 @@
             pointer-events: none;
         }
 
-        /* 3. LOGO FLOTANTE DE DISCORD (Corregido a .png y al frente) */
-        .discord-float-logo {
+        /* 3. ENLACE CONTENEDOR DE DISCORD (Ubicación fija en pantalla) */
+        .discord-link-wrapper {
             position: fixed;
             bottom: 25px;
             left: 25px;
+            z-index: 100; /* Lo ponemos bien arriba para que nada tape el clic */
+            text-decoration: none;
+            display: block;
             width: 65px;
             height: 65px;
+        }
+
+        /* EL LOGO FLOTANTE DE DISCORD (Dentro del enlace) */
+        .discord-float-logo {
+            display: block;
+            width: 100%;
+            height: 100%;
             border-radius: 50%;
-            background-image: url('imagen discord.png'); /* Cambiado a .png como me has pedido */
-            background-size: cover; background-position: center;
-            z-index: 10; 
-            cursor: pointer;
+            background-image: url('imagen discord.png'); 
+            background-size: cover; 
+            background-position: center;
             
             animation: floatMove 3s ease-in-out infinite, neonGlow 2s ease-in-out infinite;
             transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);
         }
 
-        .discord-float-logo:hover {
+        .discord-link-wrapper:hover .discord-float-logo {
             transform: scale(1.15);
         }
 
@@ -206,7 +215,9 @@
 
     <canvas id="canvas-bg"></canvas>
 
-    <a href="https://discord.gg/GzfUbcRrQM" target="_blank" class="discord-float-logo" title="¡Únete a nuestro Discord!"></a>
+    <a href="https://discord.gg/GzfUbcRrQM" target="_blank" class="discord-link-wrapper" title="¡Únete a nuestro Discord!">
+        <div class="discord-float-logo"></div>
+    </a>
 
     <div class="app-container">
         
