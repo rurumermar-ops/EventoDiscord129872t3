@@ -10,16 +10,16 @@
             margin: 0; padding: 0; width: 100%; min-height: 100vh;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #04060e; color: #ffffff;
-            overflow-x: hidden; /* Evita que la pantalla se mueva hacia los lados */
+            overflow-x: hidden;
         }
 
-        /* CAPA DE TU IMAGEN DE FONDO */
+        /* CAPA DE TU IMAGEN DE FONDO (EN MINÚSCULAS) */
         .bg-image {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background-image: url('tete.png');
+            background-image: url('tete.png'); /* Ruta exacta en minúsculas */
             background-size: cover; background-position: center;
-            opacity: 0.22; /* Opacidad suave para que resalten los textos */
-            filter: blur(3px); /* Ligero difuminado estético */
+            opacity: 0.22; 
+            filter: blur(3px); 
             z-index: -2;
         }
 
@@ -91,14 +91,12 @@
         }
         .admin-dot:hover { opacity: 0.7; }
         
-        /* CAJA CON SCROLL INCORPORADO PARA LA LISTA DE GENTE */
         .users-box {
             background: rgba(5, 8, 20, 0.85); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 15px;
             width: 100%; height: 180px; overflow-y: auto; padding: 15px; box-sizing: border-box; backdrop-filter: blur(10px);
             box-shadow: 0 10px 30px rgba(0,0,0,0.7);
         }
 
-        /* SECCIÓN ABAJO DEL TODO (OBLIGA A HACER SCROLL EN LA WEB) */
         .info-section {
             margin-top: 180px; width: 100%; display: flex; flex-direction: column; align-items: center;
         }
@@ -123,7 +121,7 @@
             letter-spacing: 1px; text-shadow: 0 2px 5px rgba(0,0,0,0.5);
         }
 
-        /* --- ELEMENTOS EXCLUSIVOS DEL ADMIN --- */
+        /* --- ELEMENTOS PANEL ADMIN --- */
         .btn-mini-delete {
             background: #ef4444; border: none; color: white; font-size: 0.8rem; font-weight: bold;
             padding: 5px 10px; border-radius: 20px; cursor: pointer; margin-left: auto; transition: background 0.2s;
@@ -135,7 +133,7 @@
             font-family: inherit; font-size: 1rem; text-align: left; resize: none; box-sizing: border-box;
         }
 
-        /* DISEÑO DE LAS BARRAS DE SCROLL INTERNAS */
+        /* Scrollbars */
         .users-box::-webkit-scrollbar, .info-notepad::-webkit-scrollbar { width: 6px; }
         .users-box::-webkit-scrollbar-track, .info-notepad::-webkit-scrollbar-track { background: rgba(0,0,0,0.3); border-radius: 10px; }
         .users-box::-webkit-scrollbar-thumb, .info-notepad::-webkit-scrollbar-thumb { background: #10b981; border-radius: 10px; }
@@ -217,7 +215,7 @@
         }
 
         function drawMathBackground() {
-            ctx.clearRect(0, 0, w, h); // Limpia el canvas para dejar ver tu imagen de fondo detrás
+            ctx.clearRect(0, 0, w, h);
 
             ctx.strokeStyle = 'rgba(16, 185, 129, 0.04)'; ctx.lineWidth = 1;
             const centerHeight = h * 0.5;
@@ -291,7 +289,6 @@
         const btnSaveInfo = document.getElementById('btn-save-info');
         const adminDotTrigger = document.getElementById('admin-dot-trigger');
 
-        // LOGIN ADMINISTRADOR VIA PUNTO VERDE
         adminDotTrigger.addEventListener('click', () => {
             const clave = prompt("Introduce clave de acceso:");
             if (clave === "0877") {
@@ -308,7 +305,6 @@
             viewHome.classList.remove('hidden-left'); viewHome.classList.add('active');
         });
 
-        // NAVEGACIÓN FORMULARIO
         btnGoForm.addEventListener('click', () => {
             viewHome.classList.remove('active'); viewHome.classList.add('hidden-left');
             viewForm.classList.remove('hidden-right'); viewForm.classList.add('active');
@@ -321,7 +317,6 @@
             discordInput.value = '';
         });
 
-        // ENVIAR INSCRIPCIÓN
         async function registerUser() {
             const user = discordInput.value.trim();
             if (user === '') {
@@ -343,7 +338,6 @@
         btnSubmit.addEventListener('click', registerUser);
         discordInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') registerUser(); });
 
-        // GUARDAR INFO DEL BLOC (SÓLO ADMIN)
         btnSaveInfo.addEventListener('click', async () => {
             const nuevoTexto = adminInfoInput.value;
             btnSaveInfo.disabled = true; btnSaveInfo.textContent = "Guardando...";
@@ -357,7 +351,6 @@
             }
         });
 
-        // ESCUCHAR EN TIEMPO REAL: USUARIOS Y CONTADOR
         const qUsers = query(collection(db, "inscripciones"), orderBy("timestamp", "desc"));
         onSnapshot(qUsers, (snapshot) => {
             usersListElement.innerHTML = ''; adminUsersListElement.innerHTML = '';
@@ -389,7 +382,6 @@
             });
         });
 
-        // ESCUCHAR EN TIEMPO REAL: BLOC DE NOTAS
         onSnapshot(doc(db, "configuracion", "texto_info"), (documento) => {
             if (documento.exists()) {
                 const textoGlobal = documento.data().contenido;
